@@ -1,13 +1,17 @@
-/*
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import javax.imageio.*;
+//import java.awt.GridLayout;
 
 public class Sample extends JFrame
 {
 	public static void main( String[ ] args )
 	{
 		Sample s = new Sample( );
-		s.setSize( 200, 100 );
+		s.setSize( 300, 300 );
 		s.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		s.setVisible( true );
 	}
@@ -15,15 +19,24 @@ public class Sample extends JFrame
 	private JLabel lb;
 	private String lb_text = "";
 	private JButton exe_button;
+	private Image img;
 	public Sample()
 	{
-		//setLayout( new FlowLayout( ) );
-		setLayout( new GridLayout( 1, 3 ) );
-		lb = new JLabel("");
+		setLayout( new BorderLayout( ) );
+		//setLayout( new GridLayout( 3, 3 ) );
+		JPanel rightPanel = new JPanel( new GridLayout(0,1,1,1) );
 		exe_button = new JButton("execute");
-		add(lb);
-		add(exe_button);
+		rightPanel.add(exe_button);
+
+		JPanel centerPanel = new JPanel( new GridLayout(0,1,1,1) );
+		lb = new JLabel(lb_text);
+		centerPanel.add(lb);
+
+		img = ImageIO.read( new File( "kyomu,jpg" ) );
+
 		addKeyListener( new SampleKeyListener( ) );
+		add(rightPanel,BorderLayout.EAST);
+		add(centerPanel,BorderLayout.CENTER);
 	}
 
 	class SampleKeyListener extends KeyAdapter
@@ -37,8 +50,10 @@ public class Sample extends JFrame
 			lb.setText(lb_text);
 		}
 	}
+
+	public void paint( Graphics g ) { super.paint( g ); g.drawImage( img, 15, 35, null ); }
 }
-*/
+/*
 import javax.swing.*;
 import java.awt.*;
 public class Sample extends JFrame
@@ -72,3 +87,4 @@ public class Sample extends JFrame
 		add( pc, BorderLayout.CENTER );
 	}
 }
+*/
