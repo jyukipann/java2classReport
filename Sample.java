@@ -18,7 +18,7 @@ public class Sample extends JFrame
 		s.setSize( 600, 600 );
 		s.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		s.setVisible( true );
-		s.setResizable(false);
+		//s.setResizable(false);
 	}
 
 	private JButton ss_button;
@@ -38,6 +38,8 @@ public class Sample extends JFrame
 		setLayout(new BorderLayout());
 		buttons = new JPanel(new FlowLayout());
 		time_label = new JLabel("time");
+		time_label.setPreferredSize(new Dimension(200, 100));
+		time_label.setHorizontalAlignment(JLabel.CENTER);
 		ss_button = new JButton( "start" );
 		reset_button = new JButton("reset");
 		background = new DrawCanvas();
@@ -60,15 +62,19 @@ public class Sample extends JFrame
 
 	//https://nompor.com/2017/12/08/post-1695/
 	class DrawCanvas extends JPanel{
+		Image kyomu = Toolkit.getDefaultToolkit().getImage("kyomu (1).jpg");
 		public void paintComponent(Graphics g){
 			super.paintComponent(g);
-			Graphics2D g2d = (Graphics2D)g;
-			AffineTransform af = g2d.getTransform();
-			af.setToRotation(Math.toRadians(angle), kyomu.getWidth(this)/2, kyomu.getHeight(this)/2);
-			System.out.println(angle);
-			af.setToScale(0.3,0.3);
-			g2d.setTransform(af);
-			g2d.drawImage(kyomu, af, this);
+	 
+			Graphics2D g2 = (Graphics2D)g;
+			AffineTransform at = g2.getTransform();
+	
+			//50ìxâÒì]Ç≥ÇπÇ‹Ç∑ÅB
+			at.setToScale(0.25,0.25);
+			at.setToRotation(Math.toRadians(angle), kyomu.getWidth(this)/2, kyomu.getHeight(this)/2);
+			g2.setTransform(at);
+	 
+			g2.drawImage(kyomu, 0,0, this);
 		}
 	}
 
@@ -139,6 +145,8 @@ public class Sample extends JFrame
 				sec = 30*60;
 				set_time_label(0,30,0);
 			}
+			angle = 0;
+			repaint();
 		}
 	}
 
