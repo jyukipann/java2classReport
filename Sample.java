@@ -18,6 +18,7 @@ public class Sample extends JFrame
 		s.setSize( 600, 600 );
 		s.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		s.setVisible( true );
+		s.setFocusTraversalKeysEnabled(false);
 		//s.setResizable(false);
 	}
 
@@ -28,15 +29,17 @@ public class Sample extends JFrame
 	private JButton reset_button;
 	private AudioClip button_push, time_up;
 	private int sec = 30*60;
-	private Image kyomu;
 	private float angle = 0;
 	private int start_time = 0;
 	private DrawCanvas background;
 	private JPanel buttons;
 	public Sample(String title){
+		//setFocusTraversalKeysEnabled(false);
+		requestFocus(); 
 		setTitle(title);
 		setLayout(new BorderLayout());
 		buttons = new JPanel(new FlowLayout());
+		buttons.setFocusTraversalKeysEnabled(false);
 		time_label = new JLabel("time");
 		time_label.setPreferredSize(new Dimension(200, 100));
 		time_label.setHorizontalAlignment(JLabel.CENTER);
@@ -47,17 +50,47 @@ public class Sample extends JFrame
 		timer = new Timer(1000, new timer_ss_countdown());
 		button_push = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_onepoint09.wav"));
 		time_up = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_jingle02.wav"));
-		try{
-			kyomu = ImageIO.read(new File("kyomu.jpg"));
-			repaint();
-		} catch(Exception ex){}
 		ss_button.addActionListener( new ss_button_Listener());
 		reset_button.addActionListener(new reset_button_Listener());
+		reset_button.setMnemonic(KeyEvent.VK_R);
+		ss_button.setMnemonic(KeyEvent.VK_S);
+		addKeyListener(new keyboardShortcuts());
 		buttons.add(ss_button);
 		buttons.add(reset_button);
 		add(time_label,BorderLayout.CENTER);
 		add(background,BorderLayout.WEST);
 		add(buttons,BorderLayout.SOUTH);
+	}
+
+	class keyboardShortcuts extends KeyAdapter
+	{
+		public void keyPressed( KeyEvent e )
+		{
+			char key = e.getKeyChar();
+			System.out.println(key);
+			switch(e.getKeyCode())
+			{
+				case KeyEvent.VK_UP:
+					
+					break;
+				case KeyEvent.VK_DOWN:
+					
+					break;
+				case KeyEvent.VK_LEFT:
+					
+					break;
+				case KeyEvent.VK_RIGHT:
+					
+					break;
+				case KeyEvent.VK_R:
+					System.out.println("R");
+					_reset();
+					break;
+				case KeyEvent.VK_SPACE:
+					switch_ss_label();
+					break;
+			}
+		}
 	}
 
 	//https://nompor.com/2017/12/08/post-1695/
@@ -78,23 +111,23 @@ public class Sample extends JFrame
 		}
 	}
 
-	String switch_ss_label(){
+	void switch_ss_label(){
+		button_push.play();
 		ss_bool = !ss_bool;
 		if(ss_bool){
 			timer.start();
 			start_time = sec;
-			return "stop";
+			ss_button.setText("stop");
 		}else{
 			timer.stop();
-			return "start";
+			ss_button.setText("start");
 		}
 	}
 
 	class ss_button_Listener implements ActionListener{
 		public void actionPerformed( ActionEvent e )
 		{
-			button_push.play();
-			ss_button.setText(switch_ss_label());
+			switch_ss_label();
 		}
 	}
 
@@ -131,22 +164,30 @@ public class Sample extends JFrame
 		return hour*3600+min*60+sec;
 	}
 
+	void _reset(){
+		button_push.play();
+		ss_bool = true;
+		switch_ss_label();
+		timer.stop();
+		String hms = JOptionPane.showInputDialog(null, "00:00‚ÌŒ`Ž®‚Å“ü—Í");
+		button_push.play();
+		if(hms != null){
+			sec = hm2sec_andSetLabel(hms);
+		}else{
+			sec = 30*60;
+			set_time_label(0,30,0);
+		}
+		angle = 0;
+		repaint();
+		try{
+			//ss_button.requestFocus();
+		}catch(Exception ex){}
+		
+	}
+
 	class reset_button_Listener implements ActionListener{
 		public void actionPerformed( ActionEvent e){
-			button_push.play();
-			ss_bool = true;
-			ss_button.setText(switch_ss_label());
-			timer.stop();
-			String hms = JOptionPane.showInputDialog(null, "00:00‚ÌŒ`Ž®‚Å“ü—Í");
-			button_push.play();
-			if(hms != null){
-				sec = hm2sec_andSetLabel(hms);
-			}else{
-				sec = 30*60;
-				set_time_label(0,30,0);
-			}
-			angle = 0;
-			repaint();
+			_reset();
 		}
 	}
 
@@ -154,7 +195,7 @@ public class Sample extends JFrame
 		public void actionPerformed(ActionEvent e){
 			if (sec <= 0){
 				ss_bool = true;
-				ss_button.setText(switch_ss_label());
+				switch_ss_label();
 				timer.stop();
 				time_up.play();
 			}else{
