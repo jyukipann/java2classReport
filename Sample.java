@@ -49,8 +49,9 @@ public class Sample extends JFrame
 		setLayout(new BorderLayout());
 
 		target = new JPanel(new FlowLayout());
-		target_set = new JButton("set");
+		target_set = new JButton("set ");
 		target_label = new JLabel();
+		target_set.addActionListener(new set_target());
 		target.add(target_label);
 		target.add(target_set);
 
@@ -165,6 +166,13 @@ public class Sample extends JFrame
 		}
 	}
 
+	class set_target implements ActionListener{
+		public void actionPerformed(ActionEvent e){
+			String target = JOptionPane.showInputDialog(null, "修行の内容をセット");
+			target_label.setText(target);
+		}
+	}
+
 	//http://akameco.hatenablog.com/entry/2014/12/26/070721
 	class bgm_buttons_Listener implements ActionListener{
 		private String[] bgmsClip = {"","maou_11_soreha_shinkiro_datta.wav","bgm_maoudamashii_healing13.wav"};
@@ -183,7 +191,7 @@ public class Sample extends JFrame
 					bgm.setFramePosition(0);
 					bgm.loop(-1);
 				}catch (Exception ex){}
-				System.out.println(bgmsClip[bgmN]);
+				//System.out.println(bgmsClip[bgmN]);
 			}
 		}
 	}
