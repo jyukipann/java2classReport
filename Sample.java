@@ -2,24 +2,24 @@ import javax.imageio.*;
 import java.awt.*; 
 import javax.swing.*;
 import java.util.TimerTask;
-import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.applet.*;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.io.*;
-
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 public class Sample extends JFrame
 {
 	public static void main( String[ ] args ){
 		Sample s = new Sample("修行タイマー");
-		s.setSize( 600, 600 );
+		s.setSize( 400, 300 );
 		s.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		s.setVisible( true );
 		s.setFocusTraversalKeysEnabled(false);
-		//s.setResizable(false);
+		s.setResizable(false);
 	}
 
 	private JButton ss_button;
@@ -33,33 +33,71 @@ public class Sample extends JFrame
 	private int start_time = 0;
 	private DrawCanvas background;
 	private JPanel buttons;
+	private JPanel timerPanel;
+	private JPanel bgms;
+	private JRadioButton[] bgm_buttons;
+	private ButtonGroup bgmgroup;
+	private Clip bgm;
+	private AudioInputStream audioIn;
+	private JPanel target;
+	private JButton target_set;
+	private JLabel target_label;
 	public Sample(String title){
-		//setFocusTraversalKeysEnabled(false);
+		setFocusTraversalKeysEnabled(false);
 		requestFocus(); 
 		setTitle(title);
 		setLayout(new BorderLayout());
+
+		target = new JPanel(new FlowLayout());
+		target_set = new JButton("set");
+		target_label = new JLabel();
+		target.add(target_label);
+		target.add(target_set);
+
+		timerPanel = new JPanel(new GridLayout(2,1));
+		time_label = new JLabel("time");
+		time_label.setPreferredSize(new Dimension(50, 50));
+		time_label.setHorizontalAlignment(JLabel.CENTER);
+		timerPanel.add(time_label);
+
 		buttons = new JPanel(new FlowLayout());
 		buttons.setFocusTraversalKeysEnabled(false);
-		time_label = new JLabel("time");
-		time_label.setPreferredSize(new Dimension(200, 100));
-		time_label.setHorizontalAlignment(JLabel.CENTER);
 		ss_button = new JButton( "start" );
-		reset_button = new JButton("reset");
-		background = new DrawCanvas();
-		background.setPreferredSize(new Dimension(300, 300));
-		timer = new Timer(1000, new timer_ss_countdown());
-		button_push = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_onepoint09.wav"));
-		time_up = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_jingle02.wav"));
 		ss_button.addActionListener( new ss_button_Listener());
+		ss_button.setMnemonic(KeyEvent.VK_S);
+		reset_button = new JButton("reset");
 		reset_button.addActionListener(new reset_button_Listener());
 		reset_button.setMnemonic(KeyEvent.VK_R);
-		ss_button.setMnemonic(KeyEvent.VK_S);
-		addKeyListener(new keyboardShortcuts());
 		buttons.add(ss_button);
 		buttons.add(reset_button);
-		add(time_label,BorderLayout.CENTER);
+		timerPanel.add(buttons);
+
+		background = new DrawCanvas();
+		background.setPreferredSize(new Dimension(200, 200));
+		timer = new Timer(1000, new timer_ss_countdown());
+
+		bgm_buttons = new JRadioButton[3];
+		bgms = new JPanel(new GridLayout(1,bgm_buttons.length+1));
+		bgm_buttons[0] = new JRadioButton("None");
+		bgm_buttons[1] = new JRadioButton("BGM 1");
+		bgm_buttons[2] = new JRadioButton("BGM 2");
+		bgmgroup = new ButtonGroup();
+		for(int i = 0; i < bgm_buttons.length; i++){
+			bgm_buttons[i].addActionListener(new bgm_buttons_Listener());
+			bgm_buttons[i].setActionCommand(String.format("%d",i));
+			bgms.add(bgm_buttons[i]);
+			bgmgroup.add(bgm_buttons[i]);
+			
+		}
+
+		button_push = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_onepoint09.wav"));
+		time_up = Applet.newAudioClip(getClass( ).getResource("se_maoudamashii_jingle02.wav"));
+		
+		addKeyListener(new keyboardShortcuts());
+		add(timerPanel,BorderLayout.CENTER);
 		add(background,BorderLayout.WEST);
-		add(buttons,BorderLayout.SOUTH);
+		add(bgms, BorderLayout.SOUTH);
+		add(target,BorderLayout.NORTH);
 	}
 
 	class keyboardShortcuts extends KeyAdapter
@@ -98,15 +136,11 @@ public class Sample extends JFrame
 		Image kyomu = Toolkit.getDefaultToolkit().getImage("kyomu (1).jpg");
 		public void paintComponent(Graphics g){
 			super.paintComponent(g);
-	 
 			Graphics2D g2 = (Graphics2D)g;
 			AffineTransform at = g2.getTransform();
-	
-			//50度回転させます。
-			at.setToScale(0.25,0.25);
+			//at.setToScale(0.25,0.25);
 			at.setToRotation(Math.toRadians(angle), kyomu.getWidth(this)/2, kyomu.getHeight(this)/2);
 			g2.setTransform(at);
-	 
 			g2.drawImage(kyomu, 0,0, this);
 		}
 	}
@@ -128,6 +162,29 @@ public class Sample extends JFrame
 		public void actionPerformed( ActionEvent e )
 		{
 			switch_ss_label();
+		}
+	}
+
+	//http://akameco.hatenablog.com/entry/2014/12/26/070721
+	class bgm_buttons_Listener implements ActionListener{
+		private String[] bgmsClip = {"","maou_11_soreha_shinkiro_datta.wav","bgm_maoudamashii_healing13.wav"};
+		public void actionPerformed( ActionEvent e )
+		{
+			int bgmN = Integer.parseInt(bgmgroup.getSelection().getActionCommand());
+			if(bgmN == 0){
+				try{
+					bgm.stop();
+				}catch(Exception ex){}
+			}else{
+				try {
+					audioIn = AudioSystem.getAudioInputStream(new File(bgmsClip[bgmN]));
+					bgm = AudioSystem.getClip();
+					bgm.open(audioIn);
+					bgm.setFramePosition(0);
+					bgm.loop(-1);
+				}catch (Exception ex){}
+				System.out.println(bgmsClip[bgmN]);
+			}
 		}
 	}
 
@@ -180,7 +237,7 @@ public class Sample extends JFrame
 		angle = 0;
 		repaint();
 		try{
-			//ss_button.requestFocus();
+			ss_button.requestFocus();
 		}catch(Exception ex){}
 		
 	}
