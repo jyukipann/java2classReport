@@ -29,8 +29,9 @@ public class Sample extends JFrame
 	private JButton reset_button;
 	private AudioClip button_push, time_up;
 	private int sec = 30*60;
-	private float angle = 0;
+	private float angle = 0.01f;
 	private int start_time = 0;
+	private int re = 0;
 	private DrawCanvas background;
 	private JPanel buttons;
 	private JPanel timerPanel;
@@ -47,13 +48,16 @@ public class Sample extends JFrame
 		requestFocus(); 
 		setTitle(title);
 		setLayout(new BorderLayout());
-
+		setFocusable(true);
+		
 		target = new JPanel(new FlowLayout());
 		target_set = new JButton("set ");
 		target_label = new JLabel();
+		target.setPreferredSize(new Dimension(400, 40));
 		target_set.addActionListener(new set_target());
 		target.add(target_label);
 		target.add(target_set);
+		
 
 		timerPanel = new JPanel(new GridLayout(2,1));
 		time_label = new JLabel("time");
@@ -65,17 +69,19 @@ public class Sample extends JFrame
 		buttons.setFocusTraversalKeysEnabled(false);
 		ss_button = new JButton( "start" );
 		ss_button.addActionListener( new ss_button_Listener());
-		ss_button.setMnemonic(KeyEvent.VK_S);
+		//ss_button.setMnemonic(KeyEvent.VK_S);
 		reset_button = new JButton("reset");
 		reset_button.addActionListener(new reset_button_Listener());
-		reset_button.setMnemonic(KeyEvent.VK_R);
+		//reset_button.setMnemonic(KeyEvent.VK_R);
 		buttons.add(ss_button);
 		buttons.add(reset_button);
 		timerPanel.add(buttons);
 
 		background = new DrawCanvas();
 		background.setPreferredSize(new Dimension(200, 200));
+		background.setBackground(Color.GREEN);
 		timer = new Timer(1000, new timer_ss_countdown());
+		repaint();
 
 		bgm_buttons = new JRadioButton[3];
 		bgms = new JPanel(new GridLayout(1,bgm_buttons.length+1));
@@ -106,29 +112,20 @@ public class Sample extends JFrame
 		public void keyPressed( KeyEvent e )
 		{
 			char key = e.getKeyChar();
-			System.out.println(key);
 			switch(e.getKeyCode())
 			{
-				case KeyEvent.VK_UP:
-					
-					break;
-				case KeyEvent.VK_DOWN:
-					
-					break;
-				case KeyEvent.VK_LEFT:
-					
-					break;
-				case KeyEvent.VK_RIGHT:
-					
-					break;
 				case KeyEvent.VK_R:
-					System.out.println("R");
 					_reset();
 					break;
 				case KeyEvent.VK_SPACE:
+				case KeyEvent.VK_S:
 					switch_ss_label();
 					break;
+				case KeyEvent.VK_T:
+					_set_target();
+					break;
 			}
+			setFocusable(true);
 		}
 	}
 
@@ -140,9 +137,11 @@ public class Sample extends JFrame
 			Graphics2D g2 = (Graphics2D)g;
 			AffineTransform at = g2.getTransform();
 			//at.setToScale(0.25,0.25);
-			at.setToRotation(Math.toRadians(angle), kyomu.getWidth(this)/2, kyomu.getHeight(this)/2);
+			//at.setToTranslation(0,40);
+			at.setToRotation(Math.toRadians(angle), kyomu.getWidth(this)/2, kyomu.getHeight(this)/2+40);
 			g2.setTransform(at);
-			g2.drawImage(kyomu, 0,0, this);
+			g2.drawImage(kyomu, 0,40, this);
+			re+=1;
 		}
 	}
 
@@ -166,10 +165,14 @@ public class Sample extends JFrame
 		}
 	}
 
+	void _set_target(){
+		String target = JOptionPane.showInputDialog(null, "修行の内容をセット");
+		target_label.setText(target);
+	}
+
 	class set_target implements ActionListener{
 		public void actionPerformed(ActionEvent e){
-			String target = JOptionPane.showInputDialog(null, "修行の内容をセット");
-			target_label.setText(target);
+			_set_target();
 		}
 	}
 
@@ -245,7 +248,7 @@ public class Sample extends JFrame
 		angle = 0;
 		repaint();
 		try{
-			ss_button.requestFocus();
+			//ss_button.requestFocus();
 		}catch(Exception ex){}
 		
 	}
@@ -274,6 +277,7 @@ public class Sample extends JFrame
 			int m = s/60;
 			s -= m*60;
 			set_time_label(h,m,s);
+			
 		}
 	}
 }
